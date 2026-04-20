@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         interpretation,
         bookData,
+        bookCover: null, // Don't fetch covers - use icon instead
       });
     }
 
@@ -72,6 +73,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       interpretation,
       bookData,
+      bookCover: null, // Don't fetch covers - use icon instead
     });
   } catch (error) {
     console.error('Interpret error:', error);

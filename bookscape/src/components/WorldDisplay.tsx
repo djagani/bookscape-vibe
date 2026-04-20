@@ -1,18 +1,53 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import type { World } from '@/lib/types';
 import Button from './Button';
 import BookIcon from './BookIcon';
+import { fixRomanceColors } from '@/lib/utils';
 
 export default function WorldDisplay({ world }: { world: World }) {
+  // Fix Romance colors
+  const fixedWorld = {
+    ...world,
+    interpretation: fixRomanceColors(world.interpretation),
+  };
   const { session } = useAuth();
   const [saved, setSaved] = useState(false);
+  const [alreadySaved, setAlreadySaved] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  // Check if book is already saved
+  useEffect(() => {
+    const checkIfSaved = async () => {
+      if (!session || fixedWorld.id !== 'new') return;
+
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        const res = await fetch('/api/worlds', {
+          headers: {
+            'Authorization': `Bearer ${currentSession?.access_token}`
+          }
+        });
+
+        if (res.ok) {
+          const { worlds } = await res.json();
+          const exists = worlds.some((w: World) =>
+            w.bookTitle === fixedWorld.bookTitle && w.author === fixedWorld.author
+          );
+          setAlreadySaved(exists);
+        }
+      } catch (err) {
+        console.error('Check saved error:', err);
+      }
+    };
+
+    checkIfSaved();
+  }, [session, fixedWorld.id, fixedWorld.bookTitle, fixedWorld.author]);
 
   const handleSave = async () => {
     if (!session) {
@@ -20,28 +55,35 @@ export default function WorldDisplay({ world }: { world: World }) {
       return;
     }
 
+    if (alreadySaved) {
+      return;
+    }
+
     setLoading(true);
 
     try {
       const { data: { session: currentSession } } = await supabase.auth.getSession();
-      
+
       const res = await fetch('/api/worlds', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${currentSession?.access_token}`
         },
         body: JSON.stringify({
-          bookTitle: world.bookTitle,
-          author: world.author,
-          bookCover: world.bookCover,
-          interpretation: world.interpretation,
+          bookTitle: fixedWorld.bookTitle,
+          author: fixedWorld.author,
+          bookCover: null, // Don't save cover - use icon instead
+          interpretation: fixedWorld.interpretation,
         }),
       });
 
       if (res.ok) {
         setSaved(true);
         setTimeout(() => window.location.href = '/library', 1000);
+      } else if (res.status === 409) {
+        setAlreadySaved(true);
+        alert('This book is already saved in your library.');
       } else {
         const error = await res.json();
         console.error('Save failed:', error);
@@ -55,86 +97,192 @@ export default function WorldDisplay({ world }: { world: World }) {
     setLoading(false);
   };
 
-  const interp = world.interpretation;
+  const interp = fixedWorld.interpretation;
 
   return (
     <div
-      className="world-wrapper min-h-screen p-8"
+      className="world-wrapper min-h-screen relative overflow-hidden flex items-center justify-center p-6"
       style={{
         '--vibe-color': interp.vibeColor,
         '--accent-color': interp.accentColor,
         '--text-color': interp.textColor,
       } as React.CSSProperties}
     >
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <div className="mb-6 flex justify-center">
+      {/* Full-bleed background image - same as landing page */}
+      <div
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage: 'url(/landingpg.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          filter: 'blur(12px)',
+        }}
+      />
+
+      {/* Dark vignette overlay */}
+      <div
+        className="absolute inset-0 z-0"
+        style={{
+          background: 'radial-gradient(circle at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.65) 100%)',
+        }}
+      />
+
+      {/* Centered content card */}
+      <div
+        className="relative max-w-2xl w-full flex flex-col gap-6 p-8 rounded-2xl overflow-y-auto scrollbar-hide z-10"
+        style={{
+          backgroundColor: 'rgba(0, 0, 0, 0.55)',
+          backdropFilter: 'blur(30px) saturate(1.4)',
+          WebkitBackdropFilter: 'blur(30px) saturate(1.4)',
+          border: '1px solid rgba(255, 255, 255, 0.10)',
+          maxHeight: '90vh',
+        }}
+      >
+        {/* Header with icon and title */}
+        <div className="text-center">
+          <div className="mb-4 flex justify-center">
             <BookIcon iconName={interp.iconName || (interp as any).emoji} size="large" />
           </div>
           {interp.genre && (
-            <div className="mb-4">
-              <span className="px-4 py-2 rounded-full text-sm font-semibold accent" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
+            <div className="mb-3">
+              <span
+                className="px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-sm ui-text"
+                style={{
+                  backgroundColor: `${interp.accentColor}20`,
+                  border: `1px solid ${interp.accentColor}40`,
+                  color: interp.accentColor,
+                }}
+              >
                 {interp.genre}
               </span>
             </div>
           )}
-          <h1 className="text-5xl font-bold mb-2">{world.bookTitle}</h1>
-          <p className="text-2xl opacity-80">{world.author}</p>
+          <h1 className="display-text text-4xl font-semibold mb-2" style={{ color: 'rgba(255, 255, 255, 0.95)' }}>
+            {fixedWorld.bookTitle}
+          </h1>
+          <p className="display-text text-xl italic mb-6" style={{ color: 'rgba(255, 255, 255, 0.70)' }}>
+            {fixedWorld.author}
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          <div>
-            <h2 className="text-xl font-semibold mb-4 accent">Themes</h2>
-            <div className="space-y-2">
-              {interp.themes.map((theme) => (
-                <div key={theme} className="text-lg opacity-90">
-                  ✨ {theme}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-semibold mb-4 accent">Emotions</h2>
-            <div className="space-y-2">
-              {interp.emotions.map((emotion) => (
-                <div key={emotion} className="text-lg opacity-90">
-                  💫 {emotion}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-12">
-          <h2 className="text-xl font-semibold mb-4 accent">Atmosphere</h2>
-          <p className="text-lg opacity-90 italic">{interp.atmosphere}</p>
-        </div>
-
-        <div className="mb-12">
-          <h2 className="text-xl font-semibold mb-4 accent">Interpretation</h2>
-          <p className="text-lg opacity-90 leading-relaxed">{interp.narrative}</p>
-        </div>
-
-        <div className="flex gap-4 justify-center flex-wrap">
-          <Button
-            onClick={handleSave}
-            disabled={loading || saved}
-            className="text-lg px-8 py-3"
+        {/* Themes */}
+        <div>
+          <h2
+            className="text-[10px] uppercase tracking-[0.12em] mb-3 ui-text"
+            style={{ color: 'rgba(255, 255, 255, 0.40)' }}
           >
-            {saved ? '✓ Saved!' : loading ? 'Saving...' : 'Save This World'}
-          </Button>
-          {world.id && (
-            <Button
-              onClick={() => router.push(`/world/${world.id}/environment`)}
-              className="text-lg px-8 py-3"
+            Themes
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {interp.themes.map((theme) => (
+              <span
+                key={theme}
+                className="px-3 py-1 rounded-full text-xs ui-text"
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.07)',
+                  border: '1px solid rgba(255, 255, 255, 0.10)',
+                  color: 'rgba(255, 255, 255, 0.75)',
+                }}
+              >
+                {theme}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Emotions */}
+        <div>
+          <h2
+            className="text-[10px] uppercase tracking-[0.12em] mb-3 ui-text"
+            style={{ color: 'rgba(255, 255, 255, 0.40)' }}
+          >
+            Emotions
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {interp.emotions.map((emotion) => (
+              <span
+                key={emotion}
+                className="px-3 py-1 rounded-full text-xs ui-text"
+                style={{
+                  backgroundColor: `${interp.accentColor}15`,
+                  border: `1px solid ${interp.accentColor}30`,
+                  color: 'rgba(255, 255, 255, 0.75)',
+                }}
+              >
+                {emotion}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Atmosphere */}
+        <div>
+          <h2
+            className="text-[10px] uppercase tracking-[0.12em] mb-3 ui-text"
+            style={{ color: 'rgba(255, 255, 255, 0.40)' }}
+          >
+            Atmosphere
+          </h2>
+          <p className="text-sm italic leading-relaxed" style={{ color: 'rgba(255, 255, 255, 0.80)', lineHeight: '1.8' }}>
+            {interp.atmosphere}
+          </p>
+        </div>
+
+        {/* The World */}
+        <div>
+          <h2
+            className="text-[10px] uppercase tracking-[0.12em] mb-3 ui-text"
+            style={{ color: 'rgba(255, 255, 255, 0.40)' }}
+          >
+            The World
+          </h2>
+          <p className="text-sm leading-relaxed" style={{ color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.8' }}>
+            {interp.narrative}
+          </p>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-col gap-3 pt-4 border-t border-white/10">
+          <button
+            onClick={handleSave}
+            disabled={loading || saved || alreadySaved}
+            className="w-full px-6 py-3 rounded-xl font-medium text-sm backdrop-blur-md transition-all duration-200 disabled:opacity-50 ui-text"
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              color: 'rgba(255, 255, 255, 0.9)',
+            }}
+            onMouseEnter={(e) => {
+              if (!loading && !saved && !alreadySaved) {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.14)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+            }}
+          >
+            {alreadySaved ? '✓ Already Saved' : saved ? '✓ Saved!' : loading ? 'Saving...' : 'Save This World'}
+          </button>
+          {fixedWorld.id && (
+            <button
+              onClick={() => router.push(`/world/${fixedWorld.id}/environment`)}
+              className="w-full px-6 py-3 rounded-xl font-medium text-sm backdrop-blur-md transition-all duration-200 ui-text"
+              style={{
+                backgroundColor: `${interp.accentColor}20`,
+                border: `1px solid ${interp.accentColor}40`,
+                color: interp.accentColor,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = `${interp.accentColor}30`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = `${interp.accentColor}20`;
+              }}
             >
               Enter World
-            </Button>
+            </button>
           )}
-          <Button variant="secondary" onClick={() => router.push('/')} className="text-lg px-8 py-3">
-            Create Another
-          </Button>
         </div>
       </div>
     </div>

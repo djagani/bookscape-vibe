@@ -11,11 +11,11 @@ export default function Button({
   className = '',
   ...props
 }: ButtonProps) {
-  const baseClasses = 'px-4 py-2 rounded font-medium transition disabled:opacity-50';
+  const baseClasses = 'px-6 py-3 rounded-xl font-medium text-sm backdrop-blur-md transition-all duration-200 disabled:opacity-50';
   const variantClasses =
     variant === 'primary'
-      ? 'bg-blue-600 hover:bg-blue-700 text-white'
-      : 'bg-slate-600 hover:bg-slate-700 text-white';
+      ? 'bg-white/10 hover:bg-white/16 active:bg-white/8 border border-white/10 hover:border-white/20 text-white/90'
+      : 'bg-white/5 hover:bg-white/10 border border-white/8 hover:border-white/14 text-white/75';
 
   return (
     <button className={`${baseClasses} ${variantClasses} ${className}`} {...props}>

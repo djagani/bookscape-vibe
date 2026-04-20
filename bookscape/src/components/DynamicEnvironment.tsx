@@ -330,6 +330,9 @@ export default function DynamicEnvironment({ world, isMuted }: DynamicEnvironmen
           style={{
             backgroundImage: `url(${sceneImage})`,
             transform: 'scale(1.1)',
+            imageRendering: 'high-quality',
+            WebkitBackfaceVisibility: 'hidden',
+            backfaceVisibility: 'hidden',
           }}
         ></div>
       )}
@@ -355,6 +358,36 @@ export default function DynamicEnvironment({ world, isMuted }: DynamicEnvironmen
       {/* Special effects layer */}
       <div className="absolute inset-0 pointer-events-none">
         {renderSpecialEffects()}
+
+        {/* Bokeh effect for romance books */}
+        {genre?.toLowerCase() === 'romance' && (
+          <div className="absolute inset-0">
+            {[...Array(20)].map((_, i) => {
+              const size = 30 + Math.random() * 80;
+              const startX = Math.random() * 100;
+              const startY = Math.random() * 100;
+              const delay = Math.random() * 10;
+              const duration = 15 + Math.random() * 10;
+
+              return (
+                <div
+                  key={`bokeh-${i}`}
+                  className="absolute rounded-full animate-bokeh-float"
+                  style={{
+                    width: `${size}px`,
+                    height: `${size}px`,
+                    left: `${startX}%`,
+                    top: `${startY}%`,
+                    background: `radial-gradient(circle, rgba(255, 182, 217, 0.35) 0%, rgba(255, 192, 224, 0.18) 40%, transparent 70%)`,
+                    filter: 'blur(8px)',
+                    animationDelay: `${delay}s`,
+                    animationDuration: `${duration}s`,
+                  }}
+                ></div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Audio */}
@@ -423,6 +456,28 @@ export default function DynamicEnvironment({ world, isMuted }: DynamicEnvironmen
           50% { transform: translateX(60vw); opacity: 0.10; }
           100% { transform: translateX(120vw); opacity: 0.05; }
         }
+        @keyframes bokeh-float {
+          0% {
+            transform: translate(0, 0) scale(1);
+            opacity: 0.4;
+          }
+          25% {
+            transform: translate(30px, -40px) scale(1.1);
+            opacity: 0.6;
+          }
+          50% {
+            transform: translate(-20px, -80px) scale(0.9);
+            opacity: 0.5;
+          }
+          75% {
+            transform: translate(40px, -120px) scale(1.05);
+            opacity: 0.7;
+          }
+          100% {
+            transform: translate(0, -160px) scale(1);
+            opacity: 0;
+          }
+        }
 
         .animate-ken-burns { animation: ken-burns 70s ease-in-out infinite; }
         .animate-breathe { animation: breathe 10s ease-in-out infinite; }
@@ -436,6 +491,7 @@ export default function DynamicEnvironment({ world, isMuted }: DynamicEnvironmen
         .animate-float-up { animation: float-up linear infinite; }
         .animate-fly { animation: fly linear infinite; }
         .animate-fog { animation: fog linear infinite; }
+        .animate-bokeh-float { animation: bokeh-float ease-in-out infinite; }
       `}</style>
     </div>
   );

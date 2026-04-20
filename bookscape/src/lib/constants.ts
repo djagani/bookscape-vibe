@@ -10,7 +10,7 @@ Return ONLY valid JSON (no markdown, no explanation):
   "atmosphere": "Single sentence describing the atmospheric feel",
   "narrative": "2-3 sentence poetic response capturing the essence",
   "vibeColor": "#hex color representing the vibe",
-  "accentColor": "#complementary hex color",
+  "accentColor": "#complementary hex color (For Romance genre, MUST use baby pink colors like #FFB6D9, #FFC0E0, #FFD4E5, or #FFADD2 for accessibility and proper contrast on dark backgrounds)",
   "textColor": "#ffffff or similar light color for readability",
   "iconName": "Choose ONE Material Design icon: Favorite, Castle, Psychology, LocationCity, AccountBalance, NightsStay, AutoStories, Forest, Cloud, Stars, LocalFlorist, Visibility",
   "environmentScene": {

@@ -88,17 +88,34 @@ export default function SignIn() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
-        <h1 className="text-4xl font-bold text-center mb-8">BookScape</h1>
-        
+    <div className="min-h-screen flex items-center justify-center p-4 pt-24">
+      <div
+        className="max-w-md w-full p-8 rounded-2xl"
+        style={{
+          backgroundColor: 'rgba(0, 0, 0, 0.45)',
+          backdropFilter: 'blur(20px) saturate(1.3)',
+          WebkitBackdropFilter: 'blur(20px) saturate(1.3)',
+          border: '1px solid rgba(255, 255, 255, 0.10)',
+        }}
+      >
+        <h1 className="display-text text-4xl font-semibold text-center mb-8 tracking-tight" style={{ color: 'var(--text-primary)' }}>
+          BookScape
+        </h1>
+
         <form onSubmit={signUpMode ? handleSignUp : handleSignIn} className="space-y-4">
           <input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 rounded bg-slate-700 text-white placeholder-gray-400"
+            className="w-full px-4 py-3 rounded-xl backdrop-blur-sm outline-none transition-all duration-200"
+            style={{
+              backgroundColor: 'var(--glass-light)',
+              border: '1px solid var(--glass-border)',
+              color: 'var(--text-primary)',
+            }}
+            onFocus={(e) => e.currentTarget.style.borderColor = 'var(--glass-border-hover)'}
+            onBlur={(e) => e.currentTarget.style.borderColor = 'var(--glass-border)'}
             required
           />
           <input
@@ -106,25 +123,32 @@ export default function SignIn() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 rounded bg-slate-700 text-white placeholder-gray-400"
+            className="w-full px-4 py-3 rounded-xl backdrop-blur-sm outline-none transition-all duration-200"
+            style={{
+              backgroundColor: 'var(--glass-light)',
+              border: '1px solid var(--glass-border)',
+              color: 'var(--text-primary)',
+            }}
+            onFocus={(e) => e.currentTarget.style.borderColor = 'var(--glass-border-hover)'}
+            onBlur={(e) => e.currentTarget.style.borderColor = 'var(--glass-border)'}
             required
           />
-          
-          {error && <p className="text-red-400 text-sm">{error}</p>}
-          {message && <p className="text-green-400 text-sm">{message}</p>}
-          
+
+          {error && <p className="text-sm" style={{ color: '#ef4444' }}>{error}</p>}
+          {message && <p className="text-sm" style={{ color: '#10b981' }}>{message}</p>}
+
           <div className="flex gap-4">
             <Button type="submit" disabled={loading} className="flex-1">
               {loading ? (signUpMode ? 'Signing up...' : 'Signing in...') : (signUpMode ? 'Sign Up' : 'Sign In')}
             </Button>
-            <Button 
+            <Button
               type="button"
-              variant="secondary" 
+              variant="secondary"
               onClick={() => {
                 setSignUpMode(!signUpMode);
                 setError('');
                 setMessage('');
-              }} 
+              }}
               disabled={loading}
               className="flex-1"
             >
@@ -133,9 +157,9 @@ export default function SignIn() {
           </div>
         </form>
 
-        <p className="text-gray-400 text-xs text-center mt-6">
-          {signUpMode 
-            ? 'Create an account to save your worlds' 
+        <p className="text-xs text-center mt-6" style={{ color: 'var(--text-muted)' }}>
+          {signUpMode
+            ? 'Create an account to save your worlds'
             : 'Sign in to access your saved worlds'}
         </p>
       </div>

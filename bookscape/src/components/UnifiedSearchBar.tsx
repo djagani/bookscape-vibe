@@ -47,6 +47,7 @@ export default function UnifiedSearchBar() {
         JSON.stringify({
           interpretation: data.interpretation,
           bookData: data.bookData,
+          bookCover: data.bookCover,
         })
       );
 
@@ -83,6 +84,7 @@ export default function UnifiedSearchBar() {
         JSON.stringify({
           interpretation: data.interpretation,
           bookData: data.bookData,
+          bookCover: data.bookCover,
         })
       );
 

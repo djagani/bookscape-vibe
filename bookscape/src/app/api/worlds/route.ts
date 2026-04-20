@@ -88,6 +88,22 @@ export async function POST(request: NextRequest) {
 
     console.log('[API] Attempting insert for user:', user.id);
 
+    // Check if this book is already saved by this user
+    const { data: existing } = await supabase
+      .from('worlds')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('book_title', bookTitle)
+      .eq('author', author)
+      .limit(1);
+
+    if (existing && existing.length > 0) {
+      return NextResponse.json(
+        { error: 'This book is already saved in your library' },
+        { status: 409 }
+      );
+    }
+
     // Convert camelCase to snake_case for database
     const { data, error } = await supabase
       .from('worlds')

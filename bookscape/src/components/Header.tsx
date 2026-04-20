@@ -16,24 +16,62 @@ export default function Header() {
   };
 
   return (
-    <header className="border-b border-slate-700 bg-slate-900/50 backdrop-blur">
-      <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-        <Link href="/" className="text-2xl font-bold text-white">
+    <header className="fixed top-4 left-1/2 -translate-x-1/2 z-[100]">
+      <div
+        className="flex items-center gap-8 px-6 py-3 rounded-2xl backdrop-blur-xl transition-all duration-200"
+        style={{
+          backgroundColor: 'rgba(0, 0, 0, 0.4)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+        }}
+      >
+        <Link
+          href="/"
+          className="display-text text-xl font-semibold transition-colors"
+          style={{ color: 'var(--text-primary)' }}
+        >
           BookScape
         </Link>
 
         <nav className="flex items-center gap-6">
           {!loading && session ? (
             <>
-              <Link href="/library" className="text-gray-300 hover:text-white">
+              <Link
+                href="/library"
+                className="transition-colors ui-text text-sm"
+                style={{ color: 'var(--text-secondary)' }}
+                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
+              >
                 Library
               </Link>
-              <Button variant="secondary" onClick={handleSignOut} className="text-sm">
+              <button
+                onClick={handleSignOut}
+                className="px-4 py-1.5 rounded-lg text-sm transition-all duration-200 ui-text"
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  color: 'var(--text-secondary)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                  e.currentTarget.style.color = 'var(--text-secondary)';
+                }}
+              >
                 Sign Out
-              </Button>
+              </button>
             </>
           ) : (
-            <Link href="/signin" className="text-gray-300 hover:text-white">
+            <Link
+              href="/signin"
+              className="transition-colors ui-text text-sm"
+              style={{ color: 'var(--text-secondary)' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
+            >
               Sign In
             </Link>
           )}

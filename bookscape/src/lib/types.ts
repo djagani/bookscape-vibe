@@ -30,7 +30,7 @@ export interface World {
   userId: string;
   bookTitle: string;
   author: string;
-  bookCover?: string;
+  bookCover?: string | null;
   interpretation: Interpretation;
   createdAt: string;
 }
@@ -39,5 +39,12 @@ export interface GoogleBooksResult {
   title: string;
   author: string;
   description: string;
-  imageLinks?: { thumbnail: string };
+  imageLinks?: {
+    smallThumbnail?: string;
+    thumbnail?: string;
+    small?: string;
+    medium?: string;
+    large?: string;
+    extraLarge?: string;
+  };
 }

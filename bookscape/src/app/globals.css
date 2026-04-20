@@ -1,26 +1,205 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* BookScape Glass System */
+  --bg-void: #05050a;
+  --glass-dark: rgba(10, 10, 15, 0.55);
+  --glass-light: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(255, 255, 255, 0.14);
+  --text-primary: rgba(255, 255, 255, 0.92);
+  --text-secondary: rgba(255, 255, 255, 0.55);
+  --text-muted: rgba(255, 255, 255, 0.3);
+  --accent-white: rgba(255, 255, 255, 0.85);
+
+  /* Theme accent (can be overridden per page) */
+  --theme-primary: #e9c46a;
+  --theme-glow: rgba(233, 196, 106, 0.25);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+body {
+  background: var(--bg-void);
+  color: var(--text-primary);
+  font-family: 'Lora', serif;
+  min-height: 100vh;
+}
+
+/* Typography */
+.display-text {
+  font-family: 'Cormorant Garamond', serif;
+}
+
+.hero-text {
+  font-family: 'Clash Display', sans-serif;
+}
+
+.ui-text {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Glass panel utility classes */
+.glass-panel {
+  background: var(--glass-dark);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+}
+
+.glass-panel-light {
+  background: var(--glass-light);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+}
+
+.glass-panel:hover,
+.glass-panel-light:hover {
+  border-color: var(--glass-border-hover);
+}
+
+/* Atmospheric background */
+.atmospheric-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(30, 20, 50, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(20, 40, 60, 0.3) 0%, transparent 50%),
+    var(--bg-void);
+  animation: atmosphericShift 20s ease-in-out infinite alternate;
+}
+
+/* Noise texture overlay */
+.atmospheric-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+@keyframes atmosphericShift {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 100% 100%;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Smooth background image loading */
+.bg-image-loaded {
+  animation: bgFadeIn 1.2s ease-in-out;
+}
+
+@keyframes bgFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Placeholder styling */
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+  opacity: 1;
+}
+
+/* Smooth transitions */
+* {
+  transition-property: background-color, border-color, color;
+  transition-timing-function: ease-in-out;
+}
+
+/* Focus styles for accessibility */
+button:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 2px;
+}
+
+/* Remove focus outline from inputs - handled by parent container */
+input:focus-visible {
+  outline: none;
+}
+
+/* Fade in animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 800ms ease forwards;
+}
+
+/* Pulsing glow animation for loading screen */
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1.5);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.7);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}
+
+.animate-delay-200 {
+  animation-delay: 200ms;
+  opacity: 0;
+}
+
+.animate-delay-400 {
+  animation-delay: 400ms;
+  opacity: 0;
+}
+
+/* Hide scrollbar */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .atmospheric-bg {
+    animation: none;
+  }
 }
