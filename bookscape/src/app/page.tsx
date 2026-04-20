@@ -1,6 +1,6 @@
 'use client';
 
-import SearchBar from '@/components/SearchBar';
+import UnifiedSearchBar from '@/components/UnifiedSearchBar';
 
 export default function Home() {
   return (
@@ -56,7 +56,7 @@ export default function Home() {
         </div>
 
         <div className="w-full max-w-[680px] animate-delay-400 animate-fadeInUp">
-          <SearchBar />
+          <UnifiedSearchBar />
         </div>
       </div>
     </div>

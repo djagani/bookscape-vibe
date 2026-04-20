@@ -8,6 +8,10 @@ import type { World } from '@/lib/types';
 import Button from './Button';
 import BookIcon from './BookIcon';
 import { fixRomanceColors } from '@/lib/utils';
+import { useSpotifyAuth } from '@/hooks/useSpotifyAuth';
+import { buildSpotifySearchQuery } from '@/lib/spotify';
+import SpotifyPlayer from './SpotifyPlayer';
+import MusicNoteIcon from '@mui/icons-material/MusicNote';
 
 export default function WorldDisplay({ world }: { world: World }) {
   // Fix Romance colors
@@ -20,6 +24,12 @@ export default function WorldDisplay({ world }: { world: World }) {
   const [alreadySaved, setAlreadySaved] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  // Spotify integration
+  const spotifyAuth = useSpotifyAuth();
+  const [spotifyTrackUri, setSpotifyTrackUri] = useState<string | null>(null);
+  const [searchingMusic, setSearchingMusic] = useState(false);
+  const [showPlayer, setShowPlayer] = useState(false);
 
   // Check if book is already saved
   useEffect(() => {
@@ -48,6 +58,44 @@ export default function WorldDisplay({ world }: { world: World }) {
 
     checkIfSaved();
   }, [session, fixedWorld.id, fixedWorld.bookTitle, fixedWorld.author]);
+
+  // Search for matching music when Spotify is authenticated
+  useEffect(() => {
+    if (!spotifyAuth.isAuthenticated || spotifyAuth.loading) return;
+
+    const searchMusic = async () => {
+      setSearchingMusic(true);
+
+      try {
+        const query = buildSpotifySearchQuery(fixedWorld.interpretation);
+        const response = await fetch(`/api/spotify/search?q=${encodeURIComponent(query)}`);
+
+        if (response.ok) {
+          const { playlists, tracks } = await response.json();
+
+          // Prefer playlists over individual tracks
+          if (playlists && playlists.length > 0) {
+            setSpotifyTrackUri(playlists[0].uri);
+          } else if (tracks && tracks.length > 0) {
+            setSpotifyTrackUri(tracks[0].uri);
+          }
+        } else if (response.status === 401) {
+          // Token expired, try to refresh
+          const refreshed = await spotifyAuth.refresh();
+          if (refreshed) {
+            // Retry search
+            searchMusic();
+          }
+        }
+      } catch (error) {
+        console.error('Music search error:', error);
+      } finally {
+        setSearchingMusic(false);
+      }
+    };
+
+    searchMusic();
+  }, [spotifyAuth.isAuthenticated, spotifyAuth.loading]);
 
   const handleSave = async () => {
     if (!session) {
@@ -244,6 +292,59 @@ export default function WorldDisplay({ world }: { world: World }) {
 
         {/* Action Buttons */}
         <div className="flex flex-col gap-3 pt-4 border-t border-white/10">
+          {/* Spotify Connect/Play Button */}
+          {!spotifyAuth.isAuthenticated ? (
+            <button
+              onClick={() => spotifyAuth.login(window.location.pathname)}
+              className="w-full px-6 py-3 rounded-xl font-medium text-sm backdrop-blur-md transition-all duration-200 ui-text flex items-center justify-center gap-2"
+              style={{
+                backgroundColor: '#1DB954',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                color: 'white',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#1ed760';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#1DB954';
+              }}
+            >
+              <MusicNoteIcon fontSize="small" />
+              Connect Spotify for Music
+            </button>
+          ) : searchingMusic ? (
+            <button
+              disabled
+              className="w-full px-6 py-3 rounded-xl font-medium text-sm backdrop-blur-md transition-all duration-200 ui-text opacity-60"
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                color: 'rgba(255, 255, 255, 0.9)',
+              }}
+            >
+              Searching for music...
+            </button>
+          ) : spotifyTrackUri && !showPlayer ? (
+            <button
+              onClick={() => setShowPlayer(true)}
+              className="w-full px-6 py-3 rounded-xl font-medium text-sm backdrop-blur-md transition-all duration-200 ui-text flex items-center justify-center gap-2"
+              style={{
+                backgroundColor: '#1DB954',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                color: 'white',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#1ed760';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#1DB954';
+              }}
+            >
+              <MusicNoteIcon fontSize="small" />
+              Play Atmospheric Music
+            </button>
+          ) : null}
+
           <button
             onClick={handleSave}
             disabled={loading || saved || alreadySaved}
@@ -285,6 +386,14 @@ export default function WorldDisplay({ world }: { world: World }) {
           )}
         </div>
       </div>
+
+      {/* Spotify Player (fixed position, outside content card) */}
+      {showPlayer && spotifyTrackUri && (
+        <SpotifyPlayer
+          trackUri={spotifyTrackUri}
+          onClose={() => setShowPlayer(false)}
+        />
+      )}
     </div>
   );
 }
