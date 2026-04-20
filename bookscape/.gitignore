@@ -31,7 +31,12 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
+<<<<<<< HEAD
 .env.local
+=======
+.env*
+settings.local.json
+>>>>>>> 544776e (git ignore changed)
 
 # vercel
 .vercel
